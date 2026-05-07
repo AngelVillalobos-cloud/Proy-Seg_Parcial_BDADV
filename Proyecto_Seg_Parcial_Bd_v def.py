@@ -49,6 +49,11 @@ def alta_proy():
                "Ubicación": ent_ploc.get(), "Número de Departamento": ent_dnum_p.get()}
     if not validar_campos(campos): return
     try:
+        # Validación de ID duplicado
+        if col_project.find_one({"Pnumber": int(ent_pnum.get())}):
+            messagebox.showerror("Error", "El número de proyecto ya existe.")
+            return
+
         col_project.insert_one({
             "Pnumber": int(ent_pnum.get()), "Pname": ent_pname.get().upper(),
             "Plocation": ent_ploc.get().upper(), "Dnum": int(ent_dnum_p.get())
@@ -119,6 +124,11 @@ def alta_dept():
                "NSS del Gerente": ent_mgr_ssn.get(), "Fecha de Inicio": ent_mgr_date.get()}
     if not validar_campos(campos): return
     try:
+        # Validación de ID duplicado (REQUERIDO POR EL USUARIO)
+        if col_department.find_one({"Dnumber": int(ent_dnumber.get())}):
+            messagebox.showerror("Error", "El número de departamento ya existe.")
+            return
+
         col_department.insert_one({
             "Dnumber": int(ent_dnumber.get()), "Dname": ent_dname.get().upper(),
             "Mgr_ssn": ent_mgr_ssn.get(), "Mgr_start_date": ent_mgr_date.get()
@@ -195,6 +205,11 @@ def alta_emp():
                "Sexo": ent_sex.get(), "Salario": ent_salary.get(), "Número de Departamento": ent_dno.get()}
     if not validar_campos(campos): return
     try:
+        # Validación de NSS duplicado
+        if col_employee.find_one({"Ssn": ent_ssn.get()}):
+            messagebox.showerror("Error", "El NSS ya está registrado para otro empleado.")
+            return
+
         super_ssn_val = ent_super_ssn.get() if ent_super_ssn.get() else None
         col_employee.insert_one({
             "Ssn": ent_ssn.get(), "Fname": ent_fname.get().upper(), "Minit": ent_minit.get().upper(),
@@ -250,7 +265,7 @@ def consulta_emp():
         txt_emp.insert("end", f"  NSS Supervisor: {e.get('Super_ssn', 'N/A')}\n")
         dept = col_department.find_one({"Dnumber": e.get("Dno")})
         nombre_dept = dept.get("Dname", "-") if dept else f"#{e.get('Dno', '-')} (no encontrado)"
-        txt_emp.insert("end", f"  Departamento:   {nombre_dept}\n")
+        txt_emp.insert("end", f"  Departamento:    {nombre_dept}\n")
         txt_emp.insert("end", SEP)
     txt_emp.configure(state="disabled")
 
@@ -288,6 +303,11 @@ def alta_dept_loc():
     campos = {"Número de Departamento": ent_dl_num.get(), "Ubicación": ent_dl_loc.get()}
     if not validar_campos(campos): return
     try:
+        # Validación de Duplicado (Clave compuesta Dnumber + Dlocation)
+        if col_dept_loc.find_one({"Dnumber": int(ent_dl_num.get()), "Dlocation": ent_dl_loc.get().upper()}):
+            messagebox.showerror("Error", "Esta ubicación ya existe para este departamento.")
+            return
+
         col_dept_loc.insert_one({"Dnumber": int(ent_dl_num.get()), "Dlocation": ent_dl_loc.get().upper()})
         consulta_dept_loc()
         limpiar_campos(ent_dl_num, ent_dl_loc)
@@ -350,6 +370,11 @@ def alta_works_on():
     campos = {"NSS del Empleado": ent_wo_essn.get(), "Número de Proyecto": ent_wo_pno.get(), "Horas Trabajadas": ent_wo_hours.get()}
     if not validar_campos(campos): return
     try:
+        # Validación de Duplicado
+        if col_works_on.find_one({"Essn": ent_wo_essn.get(), "Pno": int(ent_wo_pno.get())}):
+            messagebox.showerror("Error", "Esta asignación de empleado a proyecto ya existe.")
+            return
+
         col_works_on.insert_one({"Essn": ent_wo_essn.get(), "Pno": int(ent_wo_pno.get()), "Hours": float(ent_wo_hours.get())})
         consulta_works_on()
         limpiar_campos(ent_wo_essn, ent_wo_pno, ent_wo_hours)
@@ -415,6 +440,11 @@ def alta_dep():
                "Sexo": ent_dep_sex.get(), "Fecha de Nacimiento": ent_dep_bdate.get(), "Parentesco": ent_dep_rel.get()}
     if not validar_campos(campos): return
     try:
+        # Validación de Duplicado
+        if col_dependent.find_one({"Essn": ent_dep_essn.get(), "Dependent_name": ent_dep_name.get().upper()}):
+            messagebox.showerror("Error", "Este dependiente ya está registrado para este empleado.")
+            return
+
         col_dependent.insert_one({
             "Essn": ent_dep_essn.get(), "Dependent_name": ent_dep_name.get().upper(),
             "Sex": ent_dep_sex.get().upper(), "Bdate": ent_dep_bdate.get(), "Relationship": ent_dep_rel.get().upper()
@@ -532,7 +562,7 @@ ctk.CTkLabel(fe1_a, text="Apellido:").pack();                 ent_lname = ctk.CT
 ctk.CTkLabel(fe1_a, text="Fecha de Nacimiento:").pack();      ent_bdate = ctk.CTkEntry(fe1_a); ent_bdate.pack()
 fe1_b = ctk.CTkFrame(t_e, fg_color="transparent"); fe1_b.pack(side="left", padx=5)
 ctk.CTkLabel(fe1_b, text="Dirección:").pack();               ent_address   = ctk.CTkEntry(fe1_b); ent_address.pack()
-ctk.CTkLabel(fe1_b, text="Sexo (M/F):").pack();              ent_sex       = ctk.CTkEntry(fe1_b); ent_sex.pack()
+ctk.CTkLabel(fe1_b, text="Sexo (M/F):").pack();               ent_sex       = ctk.CTkEntry(fe1_b); ent_sex.pack()
 ctk.CTkLabel(fe1_b, text="Salario:").pack();                  ent_salary    = ctk.CTkEntry(fe1_b); ent_salary.pack()
 ctk.CTkLabel(fe1_b, text="NSS del Supervisor:").pack();       ent_super_ssn = ctk.CTkEntry(fe1_b); ent_super_ssn.pack()
 ctk.CTkLabel(fe1_b, text="Número de Departamento:").pack();   ent_dno       = ctk.CTkEntry(fe1_b); ent_dno.pack()
